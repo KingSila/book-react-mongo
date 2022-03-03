@@ -18,15 +18,27 @@ import SaveAlt from "@material-ui/icons/SaveAlt";
 import Search from "@material-ui/icons/Search";
 import ViewColumn from "@material-ui/icons/ViewColumn";
 
-const fixedList = [
-  { id: 1, book: "Atomic Habits", author: "James Clear" },
-  { id: 2, book: "7 Habits ", author: "David Charles" },
-  { id: 3, book: "Dinoneng", author: "Modibe Manepe" },
-  { id: 4, book: "Bakgala ba tswang", author: "Janury Charles" },
-];
+const mongoose = require("mongoose");
+const auditLogger = require("./auditLogger");
+var db = "";
+var logger = null;
+
+//DB connection
+mongoose.Promise = global.Promise;
+//Connect to db
+db = mongoose.connect("mongodb://localhost:27017/passwordcli", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+//Logging
+logger = auditLogger();
+
+//Import Model
+const Book = require("./models/book");
 
 export const BookList = () => {
-  const [data, setData] = useState(fixedList);
+  const [data, setData] = useState([]);
   const columns = [
     {
       title: "ID",
@@ -86,6 +98,12 @@ export const BookList = () => {
             ];
             setTimeout(() => {
               setData(updatedRows);
+
+              db.collection("passwordcli").insertOne(data, function (err, res) {
+                if (err) throw err;
+                console.log("1 document inserted");
+                db.close();
+              });
               resolve();
             }, 2000);
           }),
